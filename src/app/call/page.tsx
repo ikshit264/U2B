@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { encode } from "plantuml-encoder";
-import { setPriority } from "os";
 
 interface TranslationResponse {
   translation: string;
