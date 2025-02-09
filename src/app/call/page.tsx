@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { encode } from "plantuml-encoder";
+import { setPriority } from "os";
 
 interface TranslationResponse {
   translation: string;
@@ -11,13 +12,13 @@ interface TranslationResponse {
 function Translator() {
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [level, setLevel] = useState<"good" | "better" | "best">();
+  const [level, setLevel] = useState<"good" | "better" | "best" | "">("");
   const [URL, setURL] = useState("");
   const [output, setoutput] = useState("");
   const [fetching, setfetching] = useState(false);
   const [posting, setposting] = useState(false);
-  const [Status, setStatus] = useState("")
-  const img_link = "http://www.plantuml.com/plantuml/img/";
+  const [Status, setStatus] = useState("");
+  const img_link = "https://www.plantuml.com/plantuml/img/";
 
   const encodeToUml = (text: string) => {
     setURL(img_link + encode(text));
@@ -25,6 +26,9 @@ function Translator() {
 
   const translate = async () => {
     setfetching(true);
+    setposting(false);
+    setStatus("");
+    setError(null); 
     setError(null);
     try {
       const response = await fetch("/api/ask", {
@@ -61,44 +65,43 @@ function Translator() {
     }
   };
 
-const addToDb = async () => {
-  try {
-    setposting(true);
-    setStatus(""); // Reset before request
+  const addToDb = async () => {
+    try {
+      setposting(true);
+      setStatus(""); // Reset before request
 
-    const response = await fetch("/api/data", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input: input,
-        output: output,
-        image: URL,
-        priority: level,
-      }),
-    });
+      const response = await fetch("/api/data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input: input,
+          output: output,
+          image: URL,
+          priority: level,
+        }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      setStatus(errorData.message || "Failed to add data");
-      return
+      if (!response.ok) {
+        const errorData = await response.json();
+        setStatus(errorData.message || "Failed to add data");
+        return;
+      }
+
+      const data = await response.json();
+      setStatus(data.message);
+    } catch (err) {
+      console.error("Error fetching /api/data: ", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
+    } finally {
+      setposting(false);
     }
-
-    const data = await response.json();
-    setStatus(data.message);
-  } catch (err) {
-    console.error("Error fetching /api/data: ", err);
-    if (err instanceof Error) {
-      setError(err.message);
-    } else {
-      setError("An unknown error occurred.");
-    }
-  } finally {
-    setposting(false);
-  }
-};
-
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
@@ -109,10 +112,11 @@ const addToDb = async () => {
         placeholder="Enter description..."
       />
       <button
+      disabled = {fetching}
         onClick={translate}
         className="px-4 py-2 bg-blue-500 text-white rounded"
       >
-        Translate
+        Generate
       </button>
       {fetching && (
         <p className="text-gray-500">
@@ -129,44 +133,44 @@ const addToDb = async () => {
               target="_blank"
               className="flex items-center text-xl text-center border p-2 rounded-full"
             >
-              Click Kar BC
+              Image URL
             </a>
-            <button
+            {level !== "" && <button
               onClick={addToDb}
               disabled={posting}
               className="text-center border p-2 rounded-full text-xl "
             >
-              Add Kar BC
-            </button>
+              Add to DB
+            </button>}
             <div className="flex flex-row gap-4">
               <button
                 disabled={posting}
                 className={`p-2 border border-white rounded-full 
-      ${level === "good" ? "bg-red-600" : "bg-red-900"} 
+      ${level === "good" ? "bg-red-600 border-black" : "bg-red-900"} 
       active:scale-95 transition-all`}
                 onClick={() => setLevel("good")}
               >
-                Theak Thak
+                Good
               </button>
 
               <button
                 disabled={posting}
                 className={`p-2 border border-white rounded-full 
-      ${level === "better" ? "bg-blue-600" : "bg-blue-900"} 
+      ${level === "better" ? "bg-blue-600 border-black" : "bg-blue-900"} 
       active:scale-95 transition-all`}
                 onClick={() => setLevel("better")}
               >
-                Thoda Better
+                Better
               </button>
 
               <button
                 disabled={posting}
                 className={`p-2 border border-white rounded-full 
-      ${level === "best" ? "bg-green-600" : "bg-green-900"} 
+      ${level === "best" ? "bg-green-600 border-black" : "bg-green-900"} 
       active:scale-95 transition-all`}
                 onClick={() => setLevel("best")}
               >
-                Accha Hai
+                Best
               </button>
             </div>
           </div>

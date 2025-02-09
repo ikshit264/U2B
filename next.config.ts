@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       // Use remotePatterns (recommended for Next.js 13 and later)
       {
-        protocol: "http", // Usually https
+        protocol: "https", // Usually https
         hostname: "www.plantuml.com",
         port: "", // Leave empty if no custom port
         pathname: "/**", // Allow all paths on this hostname
