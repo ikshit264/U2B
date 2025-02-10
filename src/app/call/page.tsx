@@ -175,6 +175,7 @@ function Translator() {
           </div>
           <iframe
             src={URL}
+            allowFullScreen
             className="w-full h-[100vh] border rounded shadow-lg"
           />
         </div>
